@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Configuração EX</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .linha {
+            display: grid;
+            grid-template-columns: 120px 300px auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .linha input {
+            padding: 5px;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .codigo {
+            width: 120px;
+            max-width: 120px;
+        }
+
+        .descricao {
+            width: 300px;
+            max-width: 300px;
+        }
+
+        .topo {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .btnRemover {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="topo">
+        <button id="btnVoltar">Voltar</button>
+        <button id="btnSalvar">Salvar</button>
+        <button id="btnAdicionar">+ Adicionar</button>
+    </div>
+
+    <div id="listaEX"></div>
+
+    <script src="../scripts/trocaEX.js"></script>
+
+    <script>
+        const lista = document.getElementById('listaEX');
+
+        function criarLinha(valor = '') {
+            const div = document.createElement('div');
+            div.className = 'linha';
+
+            div.innerHTML = `
+        <input class="valor" value="${valor}" placeholder="Código EX">
+        <button class="btnRemover">❌</button>
+    `;
+
+            div.querySelector('.btnRemover').addEventListener('click', () => {
+                div.remove();
+            });
+
+            return div;
+        }
+
+        function renderizar() {
+            lista.innerHTML = '';
+
+            if (typeof trocaEX === 'undefined') {
+                console.error('trocaEX não carregou');
+                return;
+            }
+
+
+            Object.values(trocaEX).forEach(valor => {
+                lista.appendChild(criarLinha(valor));
+            });
+        }
+
+        renderizar();
+
+        document.getElementById('btnAdicionar').addEventListener('click', () => {
+            lista.appendChild(criarLinha());
+        });
+
+
+        document.getElementById('btnVoltar').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+
+
+        document.getElementById('btnSalvar').addEventListener('click', () => {
+            const novaLista = [];
+
+            document.querySelectorAll('.valor').forEach(input => {
+                const val = input.value.trim();
+                if (val) novaLista.push(val);
+            });
+
+            fetch('http://localhost:3000/salvar-ex', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(novaLista)
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Erro no servidor");
+                    return res.text();
+                })
+                .then(data => {
+                    console.log("Resposta:", data);
+                    alert('SALVO');
+
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Erro ao salvar');
+                });;
+
+
+        });
+    </script>
+
+</body>
+
+</html>

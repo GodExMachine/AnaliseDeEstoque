@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Configurar Grupos</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+
+        .codigo {
+            width: 120px;
+            max-width: 120px;
+        }
+
+        .descricao {
+            width: 800px;
+            max-width: 800px;
+        }
+
+        .topo {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .linha {
+            display: grid;
+            grid-template-columns: 120px 800px auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .linha input {
+            padding: 5px;
+            box-sizing: border-box;
+            height: 30px;
+        }
+
+        .btnRemover {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="topo">
+        <button id="btnVoltar">Voltar</button>
+        <button id="btnSalvar">Salvar</button>
+        <button id="btnAdicionar">+ Adicionar</button>
+    </div>
+
+    <div id="listaGrupos"></div>
+
+    <script src="/scripts/grupos.js"></script>
+
+    <script>
+        const lista = document.getElementById('listaGrupos');
+
+        
+        function criarLinha(codigo = '', descricao = '') {
+            const div = document.createElement('div');
+            div.className = 'linha';
+
+            div.innerHTML = `
+        <input class="codigo" value="${codigo}" placeholder="Código">
+        <input class="descricao" value="${descricao}" placeholder="Descrição">
+        <button class="btnRemover">❌</button>
+    `;
+
+            div.querySelector('.btnRemover').addEventListener('click', () => {
+                div.remove();
+            });
+
+            return div;
+        }
+
+        // renderizar
+        function renderizar() {
+            lista.innerHTML = '';
+
+            if (typeof grupos === 'undefined') {
+                console.error('grupos não carregou');
+                return;
+            }
+
+            Object.entries(grupos)
+                .sort((a, b) => a[0].localeCompare(b[0])) 
+                .forEach(([codigo, descricao]) => {
+                    lista.appendChild(criarLinha(codigo, descricao));
+                });
+        }
+
+        renderizar();
+
+       
+        document.getElementById('btnAdicionar').addEventListener('click', () => {
+            lista.appendChild(criarLinha());
+        });
+
+        
+        document.getElementById('btnVoltar').addEventListener('click', () => {
+            window.location.href = '/index.html';
+        });
+
+        
+        document.getElementById('btnSalvar').addEventListener('click', async () => {
+
+
+            const novoObjeto = {};
+
+            document.querySelectorAll('.linha').forEach(linha => {
+                const codigo = linha.querySelector('.codigo')?.value.trim();
+                const descricao = linha.querySelector('.descricao')?.value.trim();
+
+                if (codigo) {
+                    novoObjeto[codigo] = descricao;
+                }
+            });
+
+
+            try {
+                const res = await fetch('http://localhost:3000/salvar-grupos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novoObjeto)
+                });
+
+                if (!res.ok) throw new Error();
+
+                alert('SALVO');
+            } catch (e) {
+                console.error(e);
+                alert('ERRO');
+            }
+        });
+    </script>
+
+</body>
+
+</html>
